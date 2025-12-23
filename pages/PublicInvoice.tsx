@@ -126,9 +126,6 @@ const PublicInvoice: React.FC = () => {
                   </div>
                </div>
             </div>
-            <p className="text-center text-gray-400 text-sm">
-               Built by <a href="https://bio.workwithbola.xyz" target="_blank" rel="noopener noreferrer" className="font-bold hover:text-indigo-600 transition">Bola Olaniyan</a> - 2025
-            </p>
          </div>
       </div>
    );

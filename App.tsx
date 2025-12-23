@@ -325,7 +325,7 @@ const Home = () => {
                   value={activeInvoice.client.name}
                   onChange={(e) => handleManualUpdate('client.name', e.target.value)}
                   className="w-full bg-slate-50 dark:bg-slate-950 border-2 border-transparent focus:border-indigo-600 dark:focus:border-indigo-500 rounded-2xl p-4 outline-none text-slate-900 dark:text-slate-100 font-bold transition-all"
-                  placeholder="e.g. John Doe"
+                  placeholder="e.g. Ajani Baba Ajala"
                 />
               </div>
               <div>
@@ -335,7 +335,7 @@ const Home = () => {
                   value={activeInvoice.client.email}
                   onChange={(e) => handleManualUpdate('client.email', e.target.value)}
                   className="w-full bg-slate-50 dark:bg-slate-950 border-2 border-transparent focus:border-indigo-600 dark:focus:border-indigo-500 rounded-2xl p-4 outline-none text-slate-900 dark:text-slate-100 font-bold transition-all"
-                  placeholder="john@example.com"
+                  placeholder="Ajani@example.com"
                 />
               </div>
             </div>
