@@ -11,8 +11,8 @@ export const STORAGE_KEYS = {
 
 export const INITIAL_BUSINESS_PROFILE = {
   name: 'My Business',
-  email: 'hello@mybusiness.com',
-  bankName: 'GTBank',
-  accountNumber: '0123456789',
-  accountName: 'John Doe Enterprise'
+  email: 'hello@tewomi.com',
+  bankName: 'Opay',
+  accountNumber: '8123456789',
+  accountName: 'Ajani Baba Ajala Enterprise'
 };
