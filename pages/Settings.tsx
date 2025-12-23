@@ -108,6 +108,20 @@ const Settings: React.FC = () => {
                 </div>
               </div>
             </div>
+            <div className="space-y-2">
+              <label className="block text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1">Currency</label>
+              <select
+                value={profile.currency || '₦'}
+                onChange={(e) => handleChange('currency', e.target.value)}
+                className="w-full p-4 bg-slate-50 dark:bg-slate-950 border-2 border-transparent focus:border-indigo-600 dark:focus:border-indigo-500 rounded-2xl outline-none text-slate-900 dark:text-slate-100 font-bold transition-all cursor-pointer"
+              >
+                <option value="₦">₦ - Nigerian Naira</option>
+                <option value="$">$ - US Dollar</option>
+                <option value="€">€ - Euro</option>
+                <option value="£">£ - British Pound</option>
+                <option value="¥">¥ - Japanese Yen</option>
+              </select>
+            </div>
           </div>
 
           <div className="space-y-6 pt-6">

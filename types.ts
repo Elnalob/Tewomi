@@ -20,6 +20,7 @@ export interface BusinessProfile {
   bankName: string;
   accountNumber: string;
   accountName: string;
+  currency?: string;
 }
 
 export interface ClientProfile {

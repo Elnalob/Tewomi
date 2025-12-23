@@ -88,6 +88,7 @@ const Home = () => {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [showInstallBanner, setShowInstallBanner] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(false);
 
 
   const generateId = () => `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
@@ -107,6 +108,15 @@ const Home = () => {
 
   useEffect(() => {
     setInvoices(storageService.getInvoices().slice(0, 5));
+
+    // Check if user is first-time (has default account number)
+    const hasDefaultAccount = user.businessProfile.accountNumber === '0123456789' ||
+      user.businessProfile.accountNumber === '8123456789';
+    const hasSeenOnboarding = localStorage.getItem('tewomi_onboarding_seen') === 'true';
+
+    if (hasDefaultAccount && !hasSeenOnboarding) {
+      setShowOnboarding(true);
+    }
 
     window.addEventListener('beforeinstallprompt', (e) => {
       e.preventDefault();
@@ -207,6 +217,16 @@ const Home = () => {
   };
 
   const handleSaveAndDownload = () => {
+    // Check if user still has default account details
+    const hasDefaultAccount = activeInvoice.business.accountNumber === '0123456789' ||
+      activeInvoice.business.accountNumber === '8123456789';
+
+    if (hasDefaultAccount) {
+      alert("Please add your business name and payment info in the Settings section first so we can properly brand your invoice.");
+      setShowSettings(true);
+      return;
+    }
+
     if (activeInvoice.business.accountNumber.length !== 10) {
       alert("Please update your account number to 10 digits in Settings.");
       setShowSettings(true);
@@ -243,6 +263,42 @@ const Home = () => {
           <div className="flex items-center gap-4">
             <button onClick={() => setShowInstallBanner(false)} className="text-xs font-bold uppercase tracking-widest opacity-70">Later</button>
             <button onClick={handleInstallApp} className="bg-white text-indigo-600 px-4 py-1.5 rounded-lg text-xs font-black uppercase tracking-widest">Install</button>
+          </div>
+        </div>
+      )}
+
+      {/* Onboarding Modal */}
+      {showOnboarding && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-6 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300">
+          <div className="relative bg-white dark:bg-slate-900 rounded-3xl shadow-2xl max-w-md w-full p-8 animate-in zoom-in-95 duration-300">
+            <button
+              onClick={() => {
+                setShowOnboarding(false);
+                localStorage.setItem('tewomi_onboarding_seen', 'true');
+              }}
+              className="absolute top-6 left-6 p-2 text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition"
+            >
+              <X className="w-6 h-6" />
+            </button>
+
+            <div className="text-center space-y-6 pt-8">
+              <h1 className="text-5xl font-black text-slate-900 dark:text-slate-50">Ẹ káàbọ̀ o!</h1>
+              <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-50">Welcome to Tewómi! 🚀</h2>
+              <p className="text-slate-600 dark:text-slate-400 text-lg leading-relaxed">
+                Please add your business name and payment info in the Settings section first so we can properly brand your invoice.
+              </p>
+
+              <button
+                onClick={() => {
+                  setShowOnboarding(false);
+                  setShowSettings(true);
+                  localStorage.setItem('tewomi_onboarding_seen', 'true');
+                }}
+                className="w-full bg-green-500 hover:bg-green-600 text-white py-4 rounded-2xl font-black text-lg uppercase tracking-wider transition shadow-lg shadow-green-200 dark:shadow-none"
+              >
+                Go to Settings
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -398,7 +454,8 @@ const Home = () => {
           <div className="flex flex-col sm:flex-row gap-6">
             <button
               onClick={handleSaveAndDownload}
-              className="flex-1 bg-slate-900 dark:bg-indigo-600 text-white py-6 rounded-3xl font-black text-xl hover:bg-slate-800 dark:hover:bg-indigo-700 transition flex items-center justify-center gap-4 shadow-2xl shadow-indigo-200 dark:shadow-none uppercase tracking-widest"
+              disabled={activeInvoice.business.accountNumber === '0123456789' || activeInvoice.business.accountNumber === '8123456789'}
+              className="flex-1 bg-slate-900 dark:bg-indigo-600 text-white py-6 rounded-3xl font-black text-xl hover:bg-slate-800 dark:hover:bg-indigo-700 transition flex items-center justify-center gap-4 shadow-2xl shadow-indigo-200 dark:shadow-none uppercase tracking-widest disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-slate-900 dark:disabled:hover:bg-indigo-600"
             >
               <Download className="w-6 h-6" />
               <span>Bill & Download</span>
