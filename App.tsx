@@ -65,7 +65,7 @@ const ThemeToggle = () => {
         <button
           key={t.id}
           onClick={() => setTheme(t.id)}
-          className={`p-1.5 rounded-lg transition-all ${theme === t.id
+          className={`p-2 rounded-lg transition-all min-w-[24px] min-h-[24px] flex items-center justify-center ${theme === t.id
             ? 'bg-white dark:bg-slate-700 shadow-sm text-indigo-600 dark:text-indigo-400'
             : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'
             }`}
@@ -109,8 +109,9 @@ const Home = () => {
   useEffect(() => {
     setInvoices(storageService.getInvoices().slice(0, 5));
 
-    // Check if user is first-time (has default account number)
-    const hasDefaultAccount = user.businessProfile.accountNumber === '0123456789' ||
+    // Check if user is first-time (has empty or default account number)
+    const hasDefaultAccount = !user.businessProfile.accountNumber ||
+      user.businessProfile.accountNumber === '0123456789' ||
       user.businessProfile.accountNumber === '8123456789';
     const hasSeenOnboarding = localStorage.getItem('tewomi_onboarding_seen') === 'true';
 
@@ -217,8 +218,9 @@ const Home = () => {
   };
 
   const handleSaveAndDownload = () => {
-    // Check if user still has default account details
-    const hasDefaultAccount = activeInvoice.business.accountNumber === '0123456789' ||
+    // Check if user still has empty or default account details
+    const hasDefaultAccount = !activeInvoice.business.accountNumber ||
+      activeInvoice.business.accountNumber === '0123456789' ||
       activeInvoice.business.accountNumber === '8123456789';
 
     if (hasDefaultAccount) {
@@ -354,17 +356,19 @@ const Home = () => {
               <Sparkles className="w-4 h-4 text-indigo-500" />
               <h2>New Billing Task</h2>
             </div>
-            <div className="relative group">
+            <div className="space-y-4">
               <textarea
                 value={parserInput}
                 onChange={(e) => setParserInput(e.target.value)}
                 placeholder="Bill Kola 50k for Logo Design..."
-                className="w-full h-36 p-6 bg-white dark:bg-slate-900 border-2 border-slate-900 dark:border-slate-700 rounded-3xl focus:border-indigo-600 dark:focus:border-indigo-500 focus:ring-0 outline-none transition text-xl resize-none shadow-sm text-slate-900 dark:text-slate-100 font-medium placeholder-slate-400 dark:placeholder-slate-600"
+                rows={3}
+                className="w-full p-6 bg-white dark:bg-slate-900 border-2 border-slate-900 dark:border-slate-700 rounded-3xl focus:border-indigo-600 dark:focus:border-indigo-500 focus:ring-0 outline-none transition text-xl resize-none shadow-sm text-slate-900 dark:text-slate-100 font-medium placeholder-slate-400 dark:placeholder-slate-600"
+                style={{ minHeight: '144px' }}
               />
               <button
                 onClick={handleSmartParse}
                 disabled={isParsing || !parserInput.trim()}
-                className="absolute bottom-5 right-5 bg-slate-900 dark:bg-indigo-600 text-white px-6 py-3 rounded-2xl font-black uppercase tracking-widest hover:bg-slate-800 dark:hover:bg-indigo-700 disabled:opacity-50 transition flex items-center gap-2 shadow-xl"
+                className="w-full bg-slate-900 dark:bg-indigo-600 text-white px-6 py-3 rounded-2xl font-black uppercase tracking-widest hover:bg-slate-800 dark:hover:bg-indigo-700 disabled:opacity-50 transition flex items-center justify-center gap-2 shadow-xl"
               >
                 {isParsing ? <Loader2 className="w-4 h-4 animate-spin" /> : <ArrowRight className="w-5 h-5" />}
                 <span>Parse</span>
@@ -454,7 +458,7 @@ const Home = () => {
           <div className="flex flex-col sm:flex-row gap-6">
             <button
               onClick={handleSaveAndDownload}
-              disabled={activeInvoice.business.accountNumber === '0123456789' || activeInvoice.business.accountNumber === '8123456789'}
+              disabled={!activeInvoice.business.accountNumber || activeInvoice.business.accountNumber === '0123456789' || activeInvoice.business.accountNumber === '8123456789'}
               className="flex-1 bg-slate-900 dark:bg-indigo-600 text-white py-6 rounded-3xl font-black text-xl hover:bg-slate-800 dark:hover:bg-indigo-700 transition flex items-center justify-center gap-4 shadow-2xl shadow-indigo-200 dark:shadow-none uppercase tracking-widest disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-slate-900 dark:disabled:hover:bg-indigo-600"
             >
               <Download className="w-6 h-6" />

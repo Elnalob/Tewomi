@@ -10,9 +10,9 @@ export const STORAGE_KEYS = {
 };
 
 export const INITIAL_BUSINESS_PROFILE = {
-  name: 'My Business',
-  email: 'hello@tewomi.com',
-  bankName: 'Opay',
-  accountNumber: '8123456789',
-  accountName: 'Ajani Baba Ajala Enterprise'
+  name: '',
+  email: '',
+  bankName: '',
+  accountNumber: '',
+  accountName: ''
 };
