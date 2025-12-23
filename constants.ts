@@ -1,5 +1,5 @@
 
-export const APP_NAME = "Tèwómí";
+export const APP_NAME = "Tewómi";
 export const CURRENCY = "₦";
 
 export const STORAGE_KEYS = {

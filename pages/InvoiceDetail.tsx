@@ -6,7 +6,7 @@ import { storageService } from '../services/storageService';
 import { pdfService } from '../services/pdfService';
 import { CURRENCY, APP_NAME } from '../constants';
 import StatusBadge from '../components/StatusBadge';
-import { ArrowLeft, Download, Share2, CheckCircle, Edit3, Trash2, Mail, ExternalLink, Copy } from 'lucide-react';
+import { ArrowLeft, Download, Share2, CheckCircle, Edit3, Trash2, Mail, ExternalLink, Copy, X } from 'lucide-react';
 
 const InvoiceDetail: React.FC = () => {
   const { id } = useParams();
@@ -46,138 +46,139 @@ const InvoiceDetail: React.FC = () => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="bg-white min-h-full pb-12 h-full">
+      {/* Header */}
+      <div className="flex items-center justify-between pt-6 px-6 sticky top-0 bg-white z-10 pb-4 border-b border-slate-50">
         <button
           onClick={() => navigate('/dashboard')}
-          className="flex items-center gap-2 text-gray-600 hover:text-indigo-600 transition"
+          className="p-2 -ml-2 text-slate-900 rounded-full hover:bg-slate-100 transition"
         >
-          <ArrowLeft className="w-4 h-4" /> Back to Dashboard
+          <X className="w-6 h-6" />
         </button>
         <div className="flex gap-3">
+          {invoice.status !== InvoiceStatus.PAID && (
+            <button
+              onClick={markAsPaid}
+              className="px-4 py-2 bg-green-500 text-white text-sm font-bold rounded-full shadow-sm hover:bg-green-600 transition"
+            >
+              Mark as paid
+            </button>
+          )}
           <button
-            onClick={() => navigate(`/invoice/${invoice.id}/edit`)}
-            className="p-2 border rounded hover:bg-gray-50 text-gray-600 transition"
-            title="Edit"
+            onClick={() => pdfService.generateInvoicePDF(invoice)}
+            className="px-4 py-2 border-2 border-slate-900 text-slate-900 text-sm font-bold rounded-full hover:bg-slate-50 transition"
           >
-            <Edit3 className="w-5 h-5" />
-          </button>
-          <button
-            onClick={deleteInvoice}
-            className="p-2 border rounded hover:bg-red-50 text-red-600 transition"
-            title="Delete"
-          >
-            <Trash2 className="w-5 h-5" />
+            Download PDF
           </button>
         </div>
       </div>
 
-      <div className="bg-white rounded-2xl border shadow-sm overflow-hidden">
-        {/* Quick Actions Header */}
-        <div className="p-6 bg-gray-50 border-b flex flex-wrap items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
-            <StatusBadge status={invoice.status} />
-            <h1 className="text-xl font-bold text-gray-900">{invoice.invoiceNumber}</h1>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {invoice.status !== InvoiceStatus.PAID && (
-              <button
-                onClick={markAsPaid}
-                className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition"
-              >
-                <CheckCircle className="w-4 h-4" /> Mark as Paid
-              </button>
-            )}
-            <button
-              onClick={() => pdfService.generateInvoicePDF(invoice)}
-              className="flex items-center gap-2 border bg-white px-4 py-2 rounded-lg hover:bg-gray-50 transition text-gray-700"
-            >
-              <Download className="w-4 h-4" /> PDF
-            </button>
-            <button
-              onClick={copyToClipboard}
-              className="flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition"
-            >
-              {copied ? 'Copied!' : <><Share2 className="w-4 h-4" /> Share Link</>}
-            </button>
+      <div className="px-6 space-y-8">
+        {/* Invoice Number */}
+        <h1 className="text-3xl font-black text-slate-900">{invoice.invoiceNumber}</h1>
+
+        {/* Business Info */}
+        <div className="bg-slate-100 p-6 rounded-[2rem]">
+          <h2 className="text-lg font-bold text-slate-900">{invoice.business.name}</h2>
+          <p className="text-slate-400 font-medium text-sm">{invoice.business.email || 'business@email.com'}</p>
+        </div>
+
+        {/* Payment Information */}
+        <div>
+          <h3 className="text-lg font-bold text-slate-900 mb-4">Payment information</h3>
+          <div className="bg-slate-50 p-6 rounded-[2rem] space-y-4">
+            <div className="flex justify-between items-center group">
+              <span className="text-slate-400 font-medium">Name</span>
+              <span className="text-slate-900 font-bold text-right">{invoice.business.accountName}</span>
+            </div>
+            <div className="flex justify-between items-center group">
+              <span className="text-slate-400 font-medium">Account number</span>
+              <div className="flex items-center gap-2">
+                <span className="text-slate-900 font-bold font-mono">{invoice.business.accountNumber}</span>
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(invoice.business.accountNumber);
+                    setCopied(true);
+                    setTimeout(() => setCopied(false), 2000);
+                  }}
+                  className="p-1.5 bg-green-100 text-green-600 rounded-full hover:bg-green-200 transition"
+                >
+                  {copied ? <CheckCircle className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+                </button>
+              </div>
+            </div>
+            <div className="flex justify-between items-center group">
+              <span className="text-slate-400 font-medium">Bank</span>
+              <span className="text-slate-900 font-bold text-right">{invoice.business.bankName}</span>
+            </div>
           </div>
         </div>
 
-        {/* Invoice Body Preview */}
-        <div className="p-8 md:p-12 space-y-12">
-          {/* Top Info */}
-          <div className="flex flex-col md:flex-row justify-between gap-8">
-            <div className="space-y-4">
-              <div>
-                <h2 className="text-2xl font-bold text-indigo-600">{invoice.business.name}</h2>
-                <p className="text-gray-500">{invoice.business.email}</p>
-              </div>
-              <div className="text-sm">
-                <p className="font-semibold text-gray-900 uppercase text-xs mb-1">Payment Instructions:</p>
-                <p className="text-gray-600">{invoice.business.bankName}</p>
-                <p className="text-gray-600">Acc Name: {invoice.business.accountName}</p>
-                <p className="text-lg font-mono text-indigo-700 font-bold">{invoice.business.accountNumber}</p>
-              </div>
+        {/* Customer Information */}
+        <div>
+          <h3 className="text-lg font-bold text-slate-900 mb-4">Customer information</h3>
+          <div className="bg-slate-50 p-6 rounded-[2rem] space-y-4">
+            <div className="flex justify-between items-start gap-4">
+              <span className="text-slate-400 font-medium">Name</span>
+              <span className="text-slate-900 font-bold text-right">{invoice.client.name}</span>
             </div>
-            <div className="text-left md:text-right space-y-2">
-              <p className="text-xs font-semibold text-gray-500 uppercase">Issue Date: <span className="text-gray-900 ml-2">{invoice.issueDate}</span></p>
-              <p className="text-xs font-semibold text-gray-500 uppercase">Due Date: <span className="text-gray-900 ml-2">{invoice.dueDate}</span></p>
+            <div className="flex justify-between items-start gap-4">
+              <span className="text-slate-400 font-medium">Email</span>
+              <span className="text-slate-900 font-bold text-right break-all">{invoice.client.email}</span>
             </div>
           </div>
-
-          {/* Bill To */}
-          <div>
-            <p className="text-xs font-semibold text-gray-500 uppercase mb-2">Bill To:</p>
-            <p className="text-xl font-bold text-gray-900">{invoice.client.name}</p>
-            <p className="text-gray-500">{invoice.client.email}</p>
-          </div>
-
-          {/* Table */}
-          <div className="border rounded-xl overflow-hidden">
-            <table className="w-full text-left">
-              <thead>
-                <tr className="bg-gray-50 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                  <th className="px-6 py-4">Description</th>
-                  <th className="px-6 py-4 text-center">Qty</th>
-                  <th className="px-6 py-4 text-right">Price</th>
-                  <th className="px-6 py-4 text-right">Total</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y">
-                {invoice.items.map((item) => (
-                  <tr key={item.id}>
-                    <td className="px-6 py-4 text-gray-900">{item.description}</td>
-                    <td className="px-6 py-4 text-center text-gray-600">{item.quantity}</td>
-                    <td className="px-6 py-4 text-right text-gray-600">{CURRENCY}{item.unitPrice.toLocaleString()}</td>
-                    <td className="px-6 py-4 text-right font-medium text-gray-900">{CURRENCY}{item.total.toLocaleString()}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Totals */}
-          <div className="flex justify-end">
-            <div className="w-full md:w-64 space-y-3">
-              <div className="flex justify-between text-gray-500">
-                <span>Subtotal</span>
-                <span>{CURRENCY}{invoice.subtotal.toLocaleString()}</span>
-              </div>
-              <div className="flex justify-between text-2xl font-bold text-gray-900 pt-3 border-t">
-                <span>Total</span>
-                <span className="text-indigo-600">{CURRENCY}{invoice.total.toLocaleString()}</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Notes */}
-          {invoice.notes && (
-            <div className="pt-6 border-t">
-              <p className="text-xs font-semibold text-gray-500 uppercase mb-2">Notes:</p>
-              <p className="text-gray-600 text-sm leading-relaxed">{invoice.notes}</p>
-            </div>
-          )}
         </div>
+
+        {/* Invoice Details */}
+        <div>
+          <h3 className="text-lg font-bold text-slate-900 mb-4">Invoice Details</h3>
+          <div className={`flex gap-4 ${invoice.items.length > 1 ? 'overflow-x-auto pb-4 snap-x' : ''}`}>
+            {invoice.items.map((item) => (
+              <div key={item.id} className={`${invoice.items.length > 1 ? 'min-w-[85%] snap-center' : 'w-full'} bg-slate-50 p-6 rounded-[2rem] space-y-4 flex-shrink-0`}>
+                <div className="flex justify-between items-start">
+                  <span className="text-slate-400 font-medium">Description</span>
+                  <span className="text-slate-900 font-bold text-right">{item.description}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-slate-400 font-medium">Quantity</span>
+                  <span className="text-slate-900 font-bold">{item.quantity}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-slate-400 font-medium">Price per Unit</span>
+                  <span className="text-slate-900 font-bold">{CURRENCY}{item.unitPrice.toLocaleString()}</span>
+                </div>
+                <div className="pt-4 border-t border-slate-200 flex justify-between items-center">
+                  <span className="text-slate-400 font-medium">Line Total</span>
+                  <span className="text-slate-900 font-black">{CURRENCY}{item.total.toLocaleString()}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Totals */}
+        <div className="bg-slate-50 p-6 rounded-[2rem] space-y-4">
+          <div className="flex justify-between items-center">
+            <span className="text-slate-500 font-medium">Subtotal: Items ({invoice.items.length})</span>
+            <span className="text-slate-400 font-bold text-lg">{CURRENCY}{invoice.subtotal.toLocaleString()}</span>
+          </div>
+          <div className="flex justify-between items-center">
+            <span className="text-slate-500 font-medium">Total :</span>
+            <span className="text-slate-900 font-black text-xl">{CURRENCY}{invoice.total.toLocaleString()}</span>
+          </div>
+          <div className="flex justify-between items-center pt-2">
+            <span className="text-slate-500 font-medium">Payment Status</span>
+            <div className={`px-4 py-1 rounded-full text-sm font-bold ${invoice.status === InvoiceStatus.PAID
+              ? 'bg-green-100 text-green-700'
+              : 'bg-orange-100 text-orange-600'
+              }`}>
+              {invoice.status === InvoiceStatus.PAID ? 'Paid' : 'Pending'}
+            </div>
+          </div>
+        </div>
+
+        {/* Spacer */}
+        <div className="h-4" />
       </div>
     </div>
   );

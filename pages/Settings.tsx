@@ -9,7 +9,7 @@ const Settings: React.FC = () => {
   const [profile, setProfile] = useState<BusinessProfile>(user.businessProfile);
   const [status, setStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
   const [error, setError] = useState<string | null>(null);
-  
+
   const isInitialMount = useRef(true);
 
   useEffect(() => {
@@ -19,7 +19,7 @@ const Settings: React.FC = () => {
     }
 
     setStatus('saving');
-    
+
     if (profile.accountNumber.length > 0 && profile.accountNumber.length !== 10) {
       setError("Account number must be 10 digits.");
     } else {
@@ -163,7 +163,7 @@ const Settings: React.FC = () => {
             <CloudCheck className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
           </div>
           <p className="text-sm text-indigo-900 dark:text-indigo-200 font-medium leading-snug">
-            <strong>Auto-Sync Active.</strong> Tèwómí ensures your data is persisted locally and ready for your next bill instantly.
+            <strong>Auto-Sync Active.</strong> Tewómi ensures your data is persisted locally and ready for your next bill instantly.
           </p>
         </div>
       </div>

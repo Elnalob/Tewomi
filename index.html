@@ -1,12 +1,13 @@
-
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Tèwómí - Minimalist Billing</title>
+  <title>Tewómi - Minimalist Billing</title>
   <link rel="manifest" href="metadata.json">
   <meta name="theme-color" content="#4f46e5">
+  <link rel="icon" type="image/x-icon" href="/favicon.ico" />
   <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/2845/2845661.png">
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
@@ -20,7 +21,7 @@
         }
       }
     }
-    
+
     // Initialize theme immediately to prevent flash
     const theme = localStorage.getItem('tewomi_theme') || 'system';
     if (theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
@@ -36,37 +37,41 @@
     body {
       font-family: 'Inter', sans-serif;
     }
+
     @keyframes slideIn {
-      from { transform: translateX(100%); }
-      to { transform: translateX(0); }
+      from {
+        transform: translateX(100%);
+      }
+
+      to {
+        transform: translateX(0);
+      }
     }
+
     @keyframes slideInTop {
-      from { transform: translateY(-100%); }
-      to { transform: translateY(0); }
+      from {
+        transform: translateY(-100%);
+      }
+
+      to {
+        transform: translateY(0);
+      }
     }
+
     .animate-in {
       animation: slideIn 0.3s ease-out;
     }
+
     .slide-in-from-top {
       animation: slideInTop 0.5s ease-out;
     }
   </style>
-  <script type="importmap">
-  {
-    "imports": {
-      "react": "https://esm.sh/react@^19.2.3",
-      "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
-      "react/": "https://esm.sh/react@^19.2.3/",
-      "@google/genai": "https://esm.sh/@google/genai@^1.34.0",
-      "lucide-react": "https://esm.sh/lucide-react@^0.562.0",
-      "react-router-dom": "https://esm.sh/react-router-dom@^7.11.0",
-      "jspdf-autotable": "https://esm.sh/jspdf-autotable@^5.0.2",
-      "jspdf": "https://esm.sh/jspdf@^3.0.4"
-    }
-  }
-  </script>
+
 </head>
+
 <body class="bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-50 transition-colors duration-200">
   <div id="root"></div>
+  <script type="module" src="/index.tsx"></script>
 </body>
+
 </html>
