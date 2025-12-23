@@ -5,7 +5,7 @@ import { CURRENCY } from '../constants';
 
 const LivePreview: React.FC<{ invoice: Invoice }> = ({ invoice }) => {
   return (
-    <div className="bg-white shadow-2xl rounded-sm border border-gray-100 aspect-[1/1.41] p-8 text-[10px] sm:text-xs overflow-hidden sticky top-24">
+    <div className="bg-white dark:bg-slate-50 shadow-2xl rounded-sm border border-gray-100 aspect-[1/1.41] p-8 text-[10px] sm:text-xs overflow-hidden sticky top-24 transition-colors">
       <div className="flex justify-between items-start mb-8">
         <div>
           <h2 className="text-lg font-bold text-gray-900 uppercase tracking-tight">{invoice.business.name || 'Your Business'}</h2>

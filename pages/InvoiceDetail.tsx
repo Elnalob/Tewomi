@@ -163,10 +163,6 @@ const InvoiceDetail: React.FC = () => {
                 <span>Subtotal</span>
                 <span>{CURRENCY}{invoice.subtotal.toLocaleString()}</span>
               </div>
-              <div className="flex justify-between text-gray-500">
-                <span>VAT (7.5%)</span>
-                <span>{CURRENCY}{invoice.tax.toLocaleString()}</span>
-              </div>
               <div className="flex justify-between text-2xl font-bold text-gray-900 pt-3 border-t">
                 <span>Total</span>
                 <span className="text-indigo-600">{CURRENCY}{invoice.total.toLocaleString()}</span>

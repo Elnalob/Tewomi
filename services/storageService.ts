@@ -70,5 +70,23 @@ export const storageService = {
   // Added isLoggedIn method to check authentication status
   isLoggedIn: (): boolean => {
     return localStorage.getItem(STORAGE_KEYS.AUTH) === 'true';
+  },
+
+  // Helper to generate next sequential invoice number
+  getNextInvoiceNumber: (): string => {
+    const invoices = storageService.getInvoices();
+    if (invoices.length === 0) return 'INV-001';
+    
+    // Find the highest numeric value in current invoices
+    const maxNum = invoices.reduce((max, inv) => {
+      const match = inv.invoiceNumber.match(/\d+/);
+      if (match) {
+        const num = parseInt(match[0], 10);
+        return num > max ? num : max;
+      }
+      return max;
+    }, 0);
+    
+    return `INV-${(maxNum + 1).toString().padStart(3, '0')}`;
   }
 };

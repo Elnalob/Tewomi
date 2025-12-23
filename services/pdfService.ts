@@ -2,79 +2,153 @@
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 import { Invoice } from "../types";
-import { CURRENCY } from "../constants";
 
 export const pdfService = {
   generateInvoicePDF: (invoice: Invoice) => {
+    // Standard PDF fonts (Helvetica, Times) do not support the Naira symbol (₦).
+    // Using 'N' is the standard, reliable fallback to avoid encoding errors and garbled text.
+    const CURR = "N"; 
+    
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.getWidth();
+    const margin = 20;
+    const slate900 = [15, 23, 42]; // #0f172a
+    const slate500 = [100, 116, 139]; // #64748b
+    const slate200 = [226, 232, 240]; // #e2e8f0
+    const slate50 = [248, 250, 252]; // #f8fafc
 
-    // Header
+    // 1. Header Section
+    // Left: Exact Business Name & Email
+    doc.setFont("helvetica", "bold");
     doc.setFontSize(22);
-    doc.setTextColor(40, 40, 40);
-    doc.text(invoice.business.name, 20, 20);
-
+    doc.setTextColor(slate900[0], slate900[1], slate900[2]);
+    const bizName = (invoice.business.name || 'YOUR BUSINESS').toUpperCase();
+    doc.text(bizName, margin, 25);
+    
+    doc.setFont("helvetica", "normal");
     doc.setFontSize(10);
-    doc.setTextColor(100, 100, 100);
-    doc.text("Business Details", 20, 30);
-    doc.text(`Email: ${invoice.business.email}`, 20, 35);
-    doc.text(`Bank: ${invoice.business.bankName}`, 20, 40);
-    doc.text(`Acc No: ${invoice.business.accountNumber}`, 20, 45);
-    doc.text(`Name: ${invoice.business.accountName}`, 20, 50);
+    doc.setTextColor(slate500[0], slate500[1], slate500[2]);
+    doc.text(invoice.business.email || '', margin, 32);
 
-    doc.setFontSize(22);
-    doc.setTextColor(40, 40, 40);
-    doc.text("INVOICE", pageWidth - 20, 20, { align: "right" });
-
+    // Right: Large "INVOICE" watermark-style & Number
+    doc.setFontSize(28);
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(240, 240, 240); // Very light gray highlight
+    doc.text("INVOICE", pageWidth - margin, 25, { align: 'right' });
+    
     doc.setFontSize(10);
-    doc.setTextColor(100, 100, 100);
-    doc.text(`Invoice #: ${invoice.invoiceNumber}`, pageWidth - 20, 30, { align: "right" });
-    doc.text(`Date: ${invoice.issueDate}`, pageWidth - 20, 35, { align: "right" });
-    doc.text(`Due: ${invoice.dueDate}`, pageWidth - 20, 40, { align: "right" });
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(slate500[0], slate500[1], slate500[2]);
+    doc.text(`#${invoice.invoiceNumber}`, pageWidth - margin, 32, { align: 'right' });
 
-    // Bill To
+    // 2. Client & Date Section
+    const sectionY = 55;
+    doc.setFontSize(8);
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(slate500[0], slate500[1], slate500[2]);
+    doc.text("BILL TO", margin, sectionY);
+    doc.text("DATE", pageWidth - margin, sectionY, { align: 'right' });
+
     doc.setFontSize(12);
-    doc.setTextColor(40, 40, 40);
-    doc.text("Bill To:", 20, 70);
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(slate900[0], slate900[1], slate900[2]);
+    doc.text(invoice.client.name || 'Client Name', margin, sectionY + 8);
+    
     doc.setFontSize(10);
-    doc.text(invoice.client.name, 20, 76);
-    doc.text(invoice.client.email, 20, 81);
+    doc.setFont("helvetica", "bold");
+    doc.text(invoice.issueDate, pageWidth - margin, sectionY + 8, { align: 'right' });
+    
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(slate500[0], slate500[1], slate500[2]);
+    doc.text(invoice.client.email || '', margin, sectionY + 14);
 
-    // Items Table
+    // 3. Main Bold Horizontal Line
+    doc.setDrawColor(slate900[0], slate900[1], slate900[2]);
+    doc.setLineWidth(1.5);
+    doc.line(margin, 80, pageWidth - margin, 80);
+
+    // 4. Line Items Table
     autoTable(doc, {
-      startY: 90,
-      head: [['Description', 'Quantity', 'Unit Price', 'Total']],
+      startY: 85,
+      head: [], 
       body: invoice.items.map(item => [
-        item.description,
+        item.description || '...',
         item.quantity,
-        `${CURRENCY}${item.unitPrice.toLocaleString()}`,
-        `${CURRENCY}${item.total.toLocaleString()}`
+        `${CURR}${item.total.toLocaleString()}`
       ]),
-      theme: 'striped',
-      headStyles: { fillStyle: 'DF', fillColor: [79, 70, 229] }, // Tailwind indigo-600
+      theme: 'plain',
+      styles: {
+        fontSize: 12,
+        cellPadding: { top: 12, bottom: 12, left: 0, right: 0 },
+        textColor: slate900,
+        font: 'helvetica'
+      },
+      columnStyles: {
+        0: { cellWidth: 'auto', fontStyle: 'bold' },
+        1: { halign: 'center', cellWidth: 30, textColor: slate500 },
+        2: { halign: 'right', fontStyle: 'bold', cellWidth: 50 },
+      },
     });
 
-    const finalY = (doc as any).lastAutoTable.finalY || 150;
+    let currentY = (doc as any).lastAutoTable.finalY || 130;
 
-    // Totals
-    doc.text("Subtotal:", pageWidth - 60, finalY + 10);
-    doc.text(`${CURRENCY}${invoice.subtotal.toLocaleString()}`, pageWidth - 20, finalY + 10, { align: "right" });
+    // 5. Totals Section
+    const totalsX = pageWidth - margin;
+    const totalsWidth = 70;
+    
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(slate500[0], slate500[1], slate500[2]);
+    doc.text("Subtotal", totalsX - totalsWidth, currentY + 15);
+    doc.text(`${CURR}${invoice.subtotal.toLocaleString()}`, totalsX, currentY + 15, { align: 'right' });
+    
+    currentY += 15;
 
-    doc.text("VAT (7.5%):", pageWidth - 60, finalY + 16);
-    doc.text(`${CURRENCY}${invoice.tax.toLocaleString()}`, pageWidth - 20, finalY + 16, { align: "right" });
+    doc.setDrawColor(slate900[0], slate900[1], slate900[2]);
+    doc.setLineWidth(0.5);
+    doc.line(totalsX - totalsWidth, currentY + 5, totalsX, currentY + 5);
 
-    doc.setFontSize(14);
-    doc.setTextColor(0, 0, 0);
-    doc.text("Total:", pageWidth - 60, finalY + 25);
-    doc.text(`${CURRENCY}${invoice.total.toLocaleString()}`, pageWidth - 20, finalY + 25, { align: "right" });
+    doc.setFontSize(18);
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(slate900[0], slate900[1], slate900[2]);
+    doc.text("Total", totalsX - totalsWidth, currentY + 18);
+    doc.text(`${CURR}${invoice.total.toLocaleString()}`, totalsX, currentY + 18, { align: 'right' });
 
-    // Footer
-    if (invoice.notes) {
-      doc.setFontSize(10);
-      doc.setTextColor(100, 100, 100);
-      doc.text("Notes:", 20, finalY + 40);
-      doc.text(invoice.notes, 20, finalY + 46);
-    }
+    // 6. Payment Details Box
+    const boxY = Math.max(currentY + 45, 190); 
+    const boxHeight = 48;
+    
+    doc.setFillColor(slate50[0], slate50[1], slate50[2]);
+    doc.setDrawColor(slate200[0], slate200[1], slate200[2]);
+    doc.setLineDashPattern([2, 2], 0);
+    doc.roundedRect(margin, boxY, pageWidth - (margin * 2), boxHeight, 2, 2, 'FD');
+    doc.setLineDashPattern([], 0);
+
+    doc.setFontSize(8);
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(slate500[0], slate500[1], slate500[2]);
+    doc.text("PAYMENT DETAILS", margin + 10, boxY + 12);
+    
+    doc.setFontSize(11);
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(slate500[0], slate500[1], slate500[2]);
+    doc.text(invoice.business.bankName || 'Bank Name', margin + 10, boxY + 22);
+    
+    doc.setFontSize(18);
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(slate900[0], slate900[1], slate900[2]);
+    doc.text(invoice.business.accountNumber || '', margin + 10, boxY + 35);
+    
+    doc.setFontSize(9);
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(slate500[0], slate500[1], slate500[2]);
+    doc.text(invoice.business.accountName?.toUpperCase() || '', margin + 10, boxY + 43);
+
+    doc.setFont("times", "italic"); 
+    doc.setFontSize(36);
+    doc.setTextColor(slate900[0], slate900[1], slate900[2]);
+    doc.text("Thank you!", pageWidth - margin - 10, boxY + 30, { align: 'right' });
 
     doc.save(`Invoice_${invoice.invoiceNumber}.pdf`);
   }

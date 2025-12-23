@@ -37,7 +37,6 @@ export interface Invoice {
   client: ClientProfile;
   items: LineItem[];
   subtotal: number;
-  tax: number;
   total: number;
   notes?: string;
 }

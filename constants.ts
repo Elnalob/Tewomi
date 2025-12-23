@@ -1,7 +1,6 @@
 
 export const APP_NAME = "Tèwómí";
 export const CURRENCY = "₦";
-export const TAX_RATE = 0.075; // 7.5% VAT standard in Nigeria
 
 export const STORAGE_KEYS = {
   INVOICES: 'tewomi_invoices',
