@@ -1,0 +1,17 @@
+{
+  "name": "Tèwómí",
+  "short_name": "Tèwómí",
+  "description": "Minimalist instant invoicing for Nigerians. Just tell Tèwómí who to bill.",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/2845/2845661.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#4f46e5",
+  "requestFramePermissions": []
+}
