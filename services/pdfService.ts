@@ -7,15 +7,15 @@ export const pdfService = {
   generateInvoicePDF: (invoice: Invoice) => {
     // Standard PDF fonts (Helvetica, Times) do not support the Naira symbol (₦).
     // Using 'N' is the standard, reliable fallback to avoid encoding errors and garbled text.
-    const CURR = "N"; 
-    
+    const CURR = "N";
+
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.getWidth();
     const margin = 20;
-    const slate900 = [15, 23, 42]; // #0f172a
-    const slate500 = [100, 116, 139]; // #64748b
-    const slate200 = [226, 232, 240]; // #e2e8f0
-    const slate50 = [248, 250, 252]; // #f8fafc
+    const slate900: [number, number, number] = [15, 23, 42]; // #0f172a
+    const slate500: [number, number, number] = [100, 116, 139]; // #64748b
+    const slate200: [number, number, number] = [226, 232, 240]; // #e2e8f0
+    const slate50: [number, number, number] = [248, 250, 252]; // #f8fafc
 
     // 1. Header Section
     // Left: Exact Business Name & Email
@@ -24,7 +24,7 @@ export const pdfService = {
     doc.setTextColor(slate900[0], slate900[1], slate900[2]);
     const bizName = (invoice.business.name || 'YOUR BUSINESS').toUpperCase();
     doc.text(bizName, margin, 25);
-    
+
     doc.setFont("helvetica", "normal");
     doc.setFontSize(10);
     doc.setTextColor(slate500[0], slate500[1], slate500[2]);
@@ -35,7 +35,7 @@ export const pdfService = {
     doc.setFont("helvetica", "bold");
     doc.setTextColor(240, 240, 240); // Very light gray highlight
     doc.text("INVOICE", pageWidth - margin, 25, { align: 'right' });
-    
+
     doc.setFontSize(10);
     doc.setFont("helvetica", "bold");
     doc.setTextColor(slate500[0], slate500[1], slate500[2]);
@@ -53,15 +53,29 @@ export const pdfService = {
     doc.setFont("helvetica", "bold");
     doc.setTextColor(slate900[0], slate900[1], slate900[2]);
     doc.text(invoice.client.name || 'Client Name', margin, sectionY + 8);
-    
+
     doc.setFontSize(10);
     doc.setFont("helvetica", "bold");
     doc.text(invoice.issueDate, pageWidth - margin, sectionY + 8, { align: 'right' });
-    
+
+    if (invoice.dueDate) {
+      doc.setFontSize(8);
+      doc.setFont("helvetica", "bold");
+      doc.text("DUE DATE", pageWidth - margin, sectionY + 16, { align: 'right' });
+      doc.setFontSize(10);
+      doc.text(invoice.dueDate, pageWidth - margin, sectionY + 24, { align: 'right' });
+    }
+
     doc.setFontSize(10);
     doc.setFont("helvetica", "normal");
     doc.setTextColor(slate500[0], slate500[1], slate500[2]);
     doc.text(invoice.client.email || '', margin, sectionY + 14);
+    if (invoice.client.phone) {
+      doc.text(invoice.client.phone, margin, sectionY + 20);
+    }
+    if (invoice.client.address) {
+      doc.text(invoice.client.address, margin, sectionY + 26);
+    }
 
     // 3. Main Bold Horizontal Line
     doc.setDrawColor(slate900[0], slate900[1], slate900[2]);
@@ -71,9 +85,9 @@ export const pdfService = {
     // 4. Line Items Table
     autoTable(doc, {
       startY: 85,
-      head: [], 
+      head: [],
       body: invoice.items.map(item => [
-        item.description || '...',
+        item.unit ? `${item.description} (${item.unit})` : (item.description || '...'),
         item.quantity,
         `${CURR}${item.total.toLocaleString()}`
       ]),
@@ -96,13 +110,13 @@ export const pdfService = {
     // 5. Totals Section
     const totalsX = pageWidth - margin;
     const totalsWidth = 70;
-    
+
     doc.setFontSize(10);
     doc.setFont("helvetica", "normal");
     doc.setTextColor(slate500[0], slate500[1], slate500[2]);
     doc.text("Subtotal", totalsX - totalsWidth, currentY + 15);
     doc.text(`${CURR}${invoice.subtotal.toLocaleString()}`, totalsX, currentY + 15, { align: 'right' });
-    
+
     currentY += 15;
 
     doc.setDrawColor(slate900[0], slate900[1], slate900[2]);
@@ -116,9 +130,9 @@ export const pdfService = {
     doc.text(`${CURR}${invoice.total.toLocaleString()}`, totalsX, currentY + 18, { align: 'right' });
 
     // 6. Payment Details Box
-    const boxY = Math.max(currentY + 45, 190); 
+    const boxY = Math.max(currentY + 45, 190);
     const boxHeight = 48;
-    
+
     doc.setFillColor(slate50[0], slate50[1], slate50[2]);
     doc.setDrawColor(slate200[0], slate200[1], slate200[2]);
     doc.setLineDashPattern([2, 2], 0);
@@ -129,23 +143,23 @@ export const pdfService = {
     doc.setFont("helvetica", "bold");
     doc.setTextColor(slate500[0], slate500[1], slate500[2]);
     doc.text("PAYMENT DETAILS", margin + 10, boxY + 12);
-    
+
     doc.setFontSize(11);
     doc.setFont("helvetica", "normal");
     doc.setTextColor(slate500[0], slate500[1], slate500[2]);
     doc.text(invoice.business.bankName || 'Bank Name', margin + 10, boxY + 22);
-    
+
     doc.setFontSize(18);
     doc.setFont("helvetica", "bold");
     doc.setTextColor(slate900[0], slate900[1], slate900[2]);
     doc.text(invoice.business.accountNumber || '', margin + 10, boxY + 35);
-    
+
     doc.setFontSize(9);
     doc.setFont("helvetica", "normal");
     doc.setTextColor(slate500[0], slate500[1], slate500[2]);
     doc.text(invoice.business.accountName?.toUpperCase() || '', margin + 10, boxY + 43);
 
-    doc.setFont("times", "italic"); 
+    doc.setFont("times", "italic");
     doc.setFontSize(36);
     doc.setTextColor(slate900[0], slate900[1], slate900[2]);
     doc.text("Thank you!", pageWidth - margin - 10, boxY + 30, { align: 'right' });

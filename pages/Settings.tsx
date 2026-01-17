@@ -108,6 +108,24 @@ const Settings: React.FC = () => {
                 </div>
               </div>
             </div>
+
+            <div className="space-y-6 pt-6 border-t border-slate-100 dark:border-slate-800">
+              <h3 className="flex items-center gap-3 font-black text-slate-900 dark:text-slate-100 uppercase text-[10px] tracking-[0.2em]">
+                AI Configuration
+              </h3>
+              <div className="space-y-2">
+                <label className="block text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1">Gemini API Key (Backup)</label>
+                <input
+                  type="password"
+                  value={profile.geminiApiKey || ''}
+                  onChange={(e) => handleChange('geminiApiKey', e.target.value)}
+                  className="w-full p-4 bg-slate-50 dark:bg-slate-950 border-2 border-transparent focus:border-indigo-600 dark:focus:border-indigo-500 rounded-2xl outline-none text-slate-900 dark:text-slate-100 font-bold transition-all"
+                  placeholder="Enter API Key if parsing fails"
+                />
+                <p className="text-[9px] text-slate-500 mt-1 ml-1">Optional. Use this if the system default key is not working.</p>
+              </div>
+            </div>
+
             <div className="space-y-2">
               <label className="block text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1">Currency</label>
               <select

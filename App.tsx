@@ -100,8 +100,8 @@ const Home = () => {
     dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
     status: InvoiceStatus.DRAFT,
     business: user.businessProfile,
-    client: { name: '', email: '' },
-    items: [{ id: generateId(), description: '', quantity: 1, unitPrice: 0, total: 0 }],
+    client: { name: '', email: '', phone: '', address: '' },
+    items: [{ id: generateId(), description: '', quantity: 1, unit: '', unitPrice: 0, total: 0 }],
     subtotal: 0,
     total: 0
   }));
@@ -185,10 +185,23 @@ const Home = () => {
     setIsParsing(true);
     try {
       const result = await geminiService.parseWorkDescription(parserInput);
-      const newItems = (result.items || []).map(item => ({
+      console.log("Gemini parse result:", result);
+
+      if ((result as any)._error) {
+        alert(`Parsing Error: ${(result as any)._error}. Please check your API key in Settings or environment.`);
+        return;
+      }
+
+      if (!result.items || result.items.length === 0) {
+        alert("We couldn't extract any work items. Try rephrasing like 'Bill Kola 50k for Logo'.");
+        return;
+      }
+
+      const newItems = result.items.map(item => ({
         id: generateId(),
         description: item.description || 'Work',
         quantity: item.quantity || 1,
+        unit: item.unit || '',
         unitPrice: item.unitPrice || 0,
         total: (item.quantity || 1) * (item.unitPrice || 0)
       }));
@@ -196,14 +209,22 @@ const Home = () => {
 
       setActiveInvoice(prev => ({
         ...prev,
-        client: { ...prev.client, name: result.clientName || prev.client.name },
-        items: newItems.length > 0 ? newItems : prev.items,
-        subtotal: newItems.length > 0 ? subtotal : prev.subtotal,
-        total: newItems.length > 0 ? total : prev.total
+        client: {
+          ...prev.client,
+          name: result.clientName || prev.client.name,
+          email: result.clientEmail || prev.client.email,
+          phone: result.clientPhone || prev.client.phone,
+          address: result.clientAddress || prev.client.address
+        },
+        dueDate: result.dueDate || prev.dueDate,
+        items: newItems,
+        subtotal,
+        total
       }));
       setParserInput('');
     } catch (err) {
-      console.error(err);
+      console.error("Smart Parse Error:", err);
+      alert("Something went wrong while parsing. Please try again or enter details manually.");
     } finally {
       setIsParsing(false);
     }
@@ -247,8 +268,8 @@ const Home = () => {
       dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
       status: InvoiceStatus.DRAFT,
       business: user.businessProfile,
-      client: { name: '', email: '' },
-      items: [{ id: generateId(), description: '', quantity: 1, unitPrice: 0, total: 0 }],
+      client: { name: '', email: '', phone: '', address: '' },
+      items: [{ id: generateId(), description: '', quantity: 1, unit: '', unitPrice: 0, total: 0 }],
       subtotal: 0,
       total: 0
     });
@@ -360,7 +381,7 @@ const Home = () => {
               <textarea
                 value={parserInput}
                 onChange={(e) => setParserInput(e.target.value)}
-                placeholder="Bill Kola 50k for Logo Design..."
+                placeholder="e.g. Send invoice to kola@test.com for 2 Logo Designs at 50k each. Address is 5 Main St. Pay by next Friday."
                 rows={3}
                 className="w-full p-6 bg-white dark:bg-slate-900 border-2 border-slate-900 dark:border-slate-700 rounded-3xl focus:border-indigo-600 dark:focus:border-indigo-500 focus:ring-0 outline-none transition text-xl resize-none shadow-sm text-slate-900 dark:text-slate-100 font-medium placeholder-slate-400 dark:placeholder-slate-600"
                 style={{ minHeight: '144px' }}
@@ -398,13 +419,51 @@ const Home = () => {
                   placeholder="Ajani@example.com"
                 />
               </div>
+              <div>
+                <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-2 block">Phone</label>
+                <input
+                  type="tel"
+                  value={activeInvoice.client.phone || ''}
+                  onChange={(e) => handleManualUpdate('client.phone', e.target.value)}
+                  className="w-full bg-slate-50 dark:bg-slate-950 border-2 border-transparent focus:border-indigo-600 dark:focus:border-indigo-500 rounded-2xl p-4 outline-none text-slate-900 dark:text-slate-100 font-bold transition-all"
+                  placeholder="08012345678"
+                />
+              </div>
+              <div>
+                <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-2 block">Address</label>
+                <input
+                  type="text"
+                  value={activeInvoice.client.address || ''}
+                  onChange={(e) => handleManualUpdate('client.address', e.target.value)}
+                  className="w-full bg-slate-50 dark:bg-slate-950 border-2 border-transparent focus:border-indigo-600 dark:focus:border-indigo-500 rounded-2xl p-4 outline-none text-slate-900 dark:text-slate-100 font-bold transition-all"
+                  placeholder="123 Street, City"
+                />
+              </div>
+              <div>
+                <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-2 block">Issue Date</label>
+                <input
+                  type="date"
+                  value={activeInvoice.issueDate}
+                  onChange={(e) => handleManualUpdate('issueDate', e.target.value)}
+                  className="w-full bg-slate-50 dark:bg-slate-950 border-2 border-transparent focus:border-indigo-600 dark:focus:border-indigo-500 rounded-2xl p-4 outline-none text-slate-900 dark:text-slate-100 font-bold transition-all"
+                />
+              </div>
+              <div>
+                <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-2 block">Due Date</label>
+                <input
+                  type="date"
+                  value={activeInvoice.dueDate}
+                  onChange={(e) => handleManualUpdate('dueDate', e.target.value)}
+                  className="w-full bg-slate-50 dark:bg-slate-950 border-2 border-transparent focus:border-indigo-600 dark:focus:border-indigo-500 rounded-2xl p-4 outline-none text-slate-900 dark:text-slate-100 font-bold transition-all"
+                />
+              </div>
             </div>
 
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest block">Work Items</label>
                 <button
-                  onClick={() => setActiveInvoice(prev => ({ ...prev, items: [...prev.items, { id: generateId(), description: '', quantity: 1, unitPrice: 0, total: 0 }] }))}
+                  onClick={() => setActiveInvoice(prev => ({ ...prev, items: [...prev.items, { id: generateId(), description: '', quantity: 1, unit: '', unitPrice: 0, total: 0 }] }))}
                   className="text-indigo-600 dark:text-indigo-400 font-black text-[10px] uppercase tracking-widest hover:bg-indigo-50 dark:hover:bg-indigo-900/30 px-3 py-1.5 rounded-lg transition"
                 >
                   + Add Row
@@ -412,25 +471,43 @@ const Home = () => {
               </div>
               <div className="space-y-4">
                 {activeInvoice.items.map((item) => (
-                  <div key={item.id} className="grid grid-cols-12 gap-4 items-center group">
-                    <div className="col-span-7">
+                  <div key={item.id} className="grid grid-cols-12 gap-3 items-center group">
+                    <div className="col-span-4">
                       <input
                         type="text"
-                        placeholder="What are you billing for?"
+                        placeholder="Description"
                         value={item.description}
                         onChange={(e) => handleItemUpdate(item.id, 'description', e.target.value)}
-                        className="w-full bg-slate-50 dark:bg-slate-950 border-2 border-transparent focus:border-indigo-600 dark:focus:border-indigo-500 rounded-xl p-3.5 text-sm outline-none text-slate-900 dark:text-slate-100 transition-all"
+                        className="w-full bg-slate-50 dark:bg-slate-950 border-2 border-transparent focus:border-indigo-600 dark:focus:border-indigo-500 rounded-xl p-3 text-xs outline-none text-slate-900 dark:text-slate-100 transition-all font-medium"
+                      />
+                    </div>
+                    <div className="col-span-1">
+                      <input
+                        type="number"
+                        placeholder="1"
+                        value={item.quantity === 0 ? '' : item.quantity}
+                        onChange={(e) => handleItemUpdate(item.id, 'quantity', e.target.value === '' ? 0 : parseFloat(e.target.value))}
+                        className="w-full bg-slate-50 dark:bg-slate-950 border-2 border-transparent focus:border-indigo-600 dark:focus:border-indigo-500 rounded-xl p-3 text-xs outline-none text-slate-900 dark:text-slate-100 transition-all font-bold text-center pl-1 pr-1"
+                      />
+                    </div>
+                    <div className="col-span-2">
+                      <input
+                        type="text"
+                        placeholder="Unit"
+                        value={item.unit || ''}
+                        onChange={(e) => handleItemUpdate(item.id, 'unit', e.target.value)}
+                        className="w-full bg-slate-50 dark:bg-slate-950 border-2 border-transparent focus:border-indigo-600 dark:focus:border-indigo-500 rounded-xl p-3 text-xs outline-none text-slate-900 dark:text-slate-100 transition-all"
                       />
                     </div>
                     <div className="col-span-4">
                       <div className="relative">
-                        <span className="absolute left-4 top-3.5 text-slate-400 dark:text-slate-600 text-sm font-bold">{CURRENCY}</span>
+                        <span className="absolute left-3 top-3 text-slate-400 dark:text-slate-600 text-xs font-bold">{CURRENCY}</span>
                         <input
                           type="number"
                           placeholder="0"
                           value={item.unitPrice === 0 ? '' : item.unitPrice}
                           onChange={(e) => handleItemUpdate(item.id, 'unitPrice', e.target.value === '' ? 0 : parseFloat(e.target.value))}
-                          className="w-full bg-slate-50 dark:bg-slate-950 border-2 border-transparent focus:border-indigo-600 dark:focus:border-indigo-500 rounded-xl p-3.5 pl-10 text-sm outline-none font-bold text-slate-900 dark:text-slate-100 transition-all"
+                          className="w-full bg-slate-50 dark:bg-slate-950 border-2 border-transparent focus:border-indigo-600 dark:focus:border-indigo-500 rounded-xl p-3 pl-8 text-xs outline-none font-bold text-slate-900 dark:text-slate-100 transition-all"
                         />
                       </div>
                     </div>
@@ -446,7 +523,7 @@ const Home = () => {
                         }}
                         className="p-2 text-slate-300 dark:text-slate-700 hover:text-red-500 transition-colors"
                       >
-                        <Trash2 className="w-5 h-5" />
+                        <Trash2 className="w-4 h-4" />
                       </button>
                     </div>
                   </div>

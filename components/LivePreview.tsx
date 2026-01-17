@@ -21,11 +21,19 @@ const LivePreview: React.FC<{ invoice: Invoice }> = ({ invoice }) => {
         <div>
           <p className="font-bold text-gray-400 uppercase text-[8px] mb-1">Bill To</p>
           <p className="font-bold text-gray-900 text-sm">{invoice.client.name || 'Client Name'}</p>
-          <p className="text-gray-500">{invoice.client.email || 'client@email.com'}</p>
+          {invoice.client.email && <p className="text-gray-500">{invoice.client.email}</p>}
+          {invoice.client.phone && <p className="text-gray-500">{invoice.client.phone}</p>}
+          {invoice.client.address && <p className="text-gray-500">{invoice.client.address}</p>}
         </div>
         <div className="text-right">
           <p className="font-bold text-gray-400 uppercase text-[8px] mb-1">Date</p>
           <p className="text-gray-900 font-medium">{invoice.issueDate}</p>
+          {invoice.dueDate && (
+            <>
+              <p className="font-bold text-gray-400 uppercase text-[8px] mt-2 mb-1">Due Date</p>
+              <p className="text-gray-900 font-medium">{invoice.dueDate}</p>
+            </>
+          )}
         </div>
       </div>
 
@@ -40,7 +48,10 @@ const LivePreview: React.FC<{ invoice: Invoice }> = ({ invoice }) => {
         <tbody className="divide-y divide-gray-100">
           {invoice.items.map((item, idx) => (
             <tr key={idx}>
-              <td className="py-3 font-medium text-gray-800">{item.description || '...'}</td>
+              <td className="py-3 font-medium text-gray-800">
+                {item.description || '...'}
+                {item.unit && <span className="text-[8px] text-gray-400 ml-1">({item.unit})</span>}
+              </td>
               <td className="py-3 text-center text-gray-500">{item.quantity}</td>
               <td className="py-3 text-right font-bold text-gray-900">{CURRENCY}{item.total.toLocaleString()}</td>
             </tr>

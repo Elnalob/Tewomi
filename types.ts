@@ -10,6 +10,7 @@ export interface LineItem {
   id: string;
   description: string;
   quantity: number;
+  unit?: string;
   unitPrice: number;
   total: number;
 }
@@ -21,11 +22,14 @@ export interface BusinessProfile {
   accountNumber: string;
   accountName: string;
   currency?: string;
+  geminiApiKey?: string;
 }
 
 export interface ClientProfile {
   name: string;
   email: string;
+  phone?: string;
+  address?: string;
 }
 
 export interface Invoice {
