@@ -30,6 +30,15 @@ export const pdfService = {
     doc.setTextColor(slate500[0], slate500[1], slate500[2]);
     doc.text(invoice.business.email || '', margin, 32);
 
+    if (invoice.business.address) {
+      doc.setFontSize(8);
+      doc.text(invoice.business.address, margin, 38);
+    }
+    if (invoice.business.phone) {
+      doc.setFontSize(8);
+      doc.text(invoice.business.phone, margin, 43);
+    }
+
     // Right: Large "INVOICE" watermark-style & Number
     doc.setFontSize(28);
     doc.setFont("helvetica", "bold");

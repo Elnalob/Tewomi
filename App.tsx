@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { HashRouter, Routes, Route, Navigate, Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { storageService } from './services/storageService';
-import { Invoice, InvoiceStatus, LineItem } from './types';
+import { Invoice, InvoiceStatus, LineItem, BusinessProfile } from './types';
 import { APP_NAME, CURRENCY } from './constants';
 import { geminiService } from './services/geminiService';
 import { pdfService } from './services/pdfService';
@@ -182,6 +182,19 @@ const Home = () => {
 
   const handleSmartParse = async () => {
     if (!parserInput.trim()) return;
+
+    // Block parsing if business profile is incomplete
+    const biz = activeInvoice.business;
+    const requiredFields: (keyof BusinessProfile)[] = ['name', 'email', 'address', 'phone', 'bankName', 'accountNumber', 'accountName'];
+    const missingFields = requiredFields.filter(field => !biz[field] || biz[field]?.trim() === '');
+    const hasDefaultAccount = biz.accountNumber === '0123456789' || biz.accountNumber === '8123456789';
+
+    if (missingFields.length > 0 || hasDefaultAccount) {
+      alert("Please complete your Business Profile in Settings before using the smart parser. All business details are required for professional billing.");
+      setShowSettings(true);
+      return;
+    }
+
     setIsParsing(true);
     try {
       const result = await geminiService.parseWorkDescription(parserInput);
@@ -239,18 +252,19 @@ const Home = () => {
   };
 
   const handleSaveAndDownload = () => {
-    // Check if user still has empty or default account details
-    const hasDefaultAccount = !activeInvoice.business.accountNumber ||
-      activeInvoice.business.accountNumber === '0123456789' ||
-      activeInvoice.business.accountNumber === '8123456789';
+    const biz = activeInvoice.business;
+    const requiredFields: (keyof BusinessProfile)[] = ['name', 'email', 'address', 'phone', 'bankName', 'accountNumber', 'accountName'];
+    const missingFields = requiredFields.filter(field => !biz[field] || biz[field]?.trim() === '');
 
-    if (hasDefaultAccount) {
-      alert("Please add your business name and payment info in the Settings section first so we can properly brand your invoice.");
+    const hasDefaultAccount = biz.accountNumber === '0123456789' || biz.accountNumber === '8123456789';
+
+    if (missingFields.length > 0 || hasDefaultAccount) {
+      alert("Please complete your Business Profile in Settings before generating an invoice. All fields (Name, Email, Address, Phone, Bank, and Account Details) are required.");
       setShowSettings(true);
       return;
     }
 
-    if (activeInvoice.business.accountNumber.length !== 10) {
+    if (biz.accountNumber.length !== 10) {
       alert("Please update your account number to 10 digits in Settings.");
       setShowSettings(true);
       return;
@@ -535,8 +549,10 @@ const Home = () => {
           <div className="flex flex-col sm:flex-row gap-6">
             <button
               onClick={handleSaveAndDownload}
-              disabled={!activeInvoice.business.accountNumber || activeInvoice.business.accountNumber === '0123456789' || activeInvoice.business.accountNumber === '8123456789'}
-              className="flex-1 bg-slate-900 dark:bg-indigo-600 text-white py-6 rounded-3xl font-black text-xl hover:bg-slate-800 dark:hover:bg-indigo-700 transition flex items-center justify-center gap-4 shadow-2xl shadow-indigo-200 dark:shadow-none uppercase tracking-widest disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-slate-900 dark:disabled:hover:bg-indigo-600"
+              className={`flex-1 bg-slate-900 dark:bg-indigo-600 text-white py-6 rounded-3xl font-black text-xl hover:bg-slate-800 dark:hover:bg-indigo-700 transition flex items-center justify-center gap-4 shadow-2xl shadow-indigo-200 dark:shadow-none uppercase tracking-widest ${(!activeInvoice.business.name || !activeInvoice.business.address || !activeInvoice.business.phone || !activeInvoice.business.accountNumber)
+                ? 'opacity-40 cursor-not-allowed'
+                : ''
+                }`}
             >
               <Download className="w-6 h-6" />
               <span>Bill & Download</span>

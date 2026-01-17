@@ -21,6 +21,8 @@ export interface BusinessProfile {
   bankName: string;
   accountNumber: string;
   accountName: string;
+  address?: string;
+  phone?: string;
   currency?: string;
   geminiApiKey?: string;
 }

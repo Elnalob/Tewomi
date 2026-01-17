@@ -107,6 +107,26 @@ const Settings: React.FC = () => {
                   />
                 </div>
               </div>
+              <div className="space-y-2">
+                <label className="block text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1">Business Address</label>
+                <input
+                  type="text"
+                  value={profile.address || ''}
+                  onChange={(e) => handleChange('address', e.target.value)}
+                  className="w-full p-4 bg-slate-50 dark:bg-slate-950 border-2 border-transparent focus:border-indigo-600 dark:focus:border-indigo-500 rounded-2xl outline-none text-slate-900 dark:text-slate-100 font-bold transition-all"
+                  placeholder="e.g. 15, Example Street, Lagos"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="block text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1">Business Phone</label>
+                <input
+                  type="tel"
+                  value={profile.phone || ''}
+                  onChange={(e) => handleChange('phone', e.target.value)}
+                  className="w-full p-4 bg-slate-50 dark:bg-slate-950 border-2 border-transparent focus:border-indigo-600 dark:focus:border-indigo-500 rounded-2xl outline-none text-slate-900 dark:text-slate-100 font-bold transition-all"
+                  placeholder="e.g. 08012345678"
+                />
+              </div>
             </div>
 
             <div className="space-y-6 pt-6 border-t border-slate-100 dark:border-slate-800">

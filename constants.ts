@@ -12,6 +12,8 @@ export const STORAGE_KEYS = {
 export const INITIAL_BUSINESS_PROFILE = {
   name: '',
   email: '',
+  address: '',
+  phone: '',
   bankName: '',
   accountNumber: '',
   accountName: ''
