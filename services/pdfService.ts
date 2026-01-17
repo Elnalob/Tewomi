@@ -104,23 +104,31 @@ export const pdfService = {
       ]),
       theme: 'plain',
       headStyles: {
-        fontSize: 9, // Slightly larger for clarity
+        fontSize: 9,
         fontStyle: 'bold',
         textColor: slate500,
-        cellPadding: { bottom: 8, top: 4 }
+        cellPadding: { top: 8, bottom: 8, left: 0, right: 0 } // Synchronized padding
       },
       styles: {
         fontSize: 10,
-        cellPadding: { top: 8, bottom: 8, left: 0, right: 0 },
+        cellPadding: { top: 8, bottom: 8, left: 0, right: 0 }, // Synchronized padding
         textColor: slate900,
         font: 'helvetica'
       },
       columnStyles: {
-        0: { cellWidth: 'auto', fontStyle: 'bold' },
+        0: { cellWidth: 'auto', fontStyle: 'bold', halign: 'left' },
         1: { halign: 'center', cellWidth: 25 },
         2: { halign: 'right', cellWidth: 40 },
         3: { halign: 'right', fontStyle: 'bold', cellWidth: 45 },
       },
+      // Ensure headers follow the same horizontal alignment as columns
+      didParseCell: (data) => {
+        if (data.section === 'head') {
+          if (data.column.index === 1) data.cell.styles.halign = 'center';
+          if (data.column.index === 2) data.cell.styles.halign = 'right';
+          if (data.column.index === 3) data.cell.styles.halign = 'right';
+        }
+      }
     });
 
     let currentY = (doc as any).lastAutoTable.finalY || 130;

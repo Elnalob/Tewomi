@@ -253,13 +253,14 @@ const Home = () => {
 
   const handleSaveAndDownload = () => {
     const biz = activeInvoice.business;
-    const requiredFields: (keyof BusinessProfile)[] = ['name', 'email', 'phone', 'bankName', 'accountNumber', 'accountName'];
-    const missingFields = requiredFields.filter(field => !biz[field] || biz[field]?.trim() === '');
+    const client = activeInvoice.client;
 
+    const requiredBizFields: (keyof BusinessProfile)[] = ['name', 'email', 'phone', 'bankName', 'accountNumber', 'accountName'];
+    const missingBizFields = requiredBizFields.filter(field => !biz[field] || biz[field]?.trim() === '');
     const hasDefaultAccount = biz.accountNumber === '0123456789' || biz.accountNumber === '8123456789';
 
-    if (missingFields.length > 0 || hasDefaultAccount) {
-      alert("Please complete your Business Profile in Settings before generating an invoice. Essential fields (Name, Email, Phone, Bank, and Account Details) are required.");
+    if (missingBizFields.length > 0 || hasDefaultAccount) {
+      alert("Please complete your Business Profile in Settings. Name, Email, Phone, and Bank Details are required for professional billing.");
       setShowSettings(true);
       return;
     }
@@ -269,6 +270,12 @@ const Home = () => {
       setShowSettings(true);
       return;
     }
+
+    if (!client.name || client.name.trim() === '') {
+      alert("Please enter the Client's Name before generating the invoice.");
+      return;
+    }
+
     storageService.saveInvoice(activeInvoice);
     pdfService.generateInvoicePDF(activeInvoice);
     setInvoices(storageService.getInvoices().slice(0, 5));
@@ -549,7 +556,7 @@ const Home = () => {
           <div className="flex flex-col sm:flex-row gap-6">
             <button
               onClick={handleSaveAndDownload}
-              className={`flex-1 bg-slate-900 dark:bg-indigo-600 text-white py-6 rounded-3xl font-black text-xl hover:bg-slate-800 dark:hover:bg-indigo-700 transition flex items-center justify-center gap-4 shadow-2xl shadow-indigo-200 dark:shadow-none uppercase tracking-widest ${(!activeInvoice.business.name || !activeInvoice.business.phone || !activeInvoice.business.accountNumber)
+              className={`flex-1 bg-slate-900 dark:bg-indigo-600 text-white py-6 rounded-3xl font-black text-xl hover:bg-slate-800 dark:hover:bg-indigo-700 transition flex items-center justify-center gap-4 shadow-2xl shadow-indigo-200 dark:shadow-none uppercase tracking-widest ${(!activeInvoice.business.name || !activeInvoice.business.phone || !activeInvoice.business.accountNumber || !activeInvoice.client.name)
                   ? 'opacity-40 cursor-not-allowed'
                   : ''
                 }`}
