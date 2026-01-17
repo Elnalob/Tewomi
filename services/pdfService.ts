@@ -86,31 +86,40 @@ export const pdfService = {
       doc.text(invoice.client.address, margin, sectionY + 26);
     }
 
-    // 3. Main Bold Horizontal Line
+    // 3. Main Bold Horizontal Line - Moved down to avoid overlap with address
+    const lineY = sectionY + 40;
     doc.setDrawColor(slate900[0], slate900[1], slate900[2]);
     doc.setLineWidth(1.5);
-    doc.line(margin, 80, pageWidth - margin, 80);
+    doc.line(margin, lineY, pageWidth - margin, lineY);
 
-    // 4. Line Items Table
+    // 4. Line Items Table with Headers
     autoTable(doc, {
-      startY: 85,
-      head: [],
+      startY: lineY + 5,
+      head: [['Description', 'Qty', 'Price', 'Total']],
       body: invoice.items.map(item => [
         item.unit ? `${item.description} (${item.unit})` : (item.description || '...'),
         item.quantity,
-        `${CURR}${item.total.toLocaleString()}`
+        `${invoice.business.currency || CURR}${item.unitPrice.toLocaleString()}`,
+        `${invoice.business.currency || CURR}${item.total.toLocaleString()}`
       ]),
       theme: 'plain',
+      headStyles: {
+        fontSize: 8,
+        fontStyle: 'bold',
+        textColor: slate500,
+        cellPadding: { bottom: 5, top: 2 }
+      },
       styles: {
-        fontSize: 12,
-        cellPadding: { top: 12, bottom: 12, left: 0, right: 0 },
+        fontSize: 10,
+        cellPadding: { top: 8, bottom: 8, left: 0, right: 0 },
         textColor: slate900,
         font: 'helvetica'
       },
       columnStyles: {
         0: { cellWidth: 'auto', fontStyle: 'bold' },
-        1: { halign: 'center', cellWidth: 30, textColor: slate500 },
-        2: { halign: 'right', fontStyle: 'bold', cellWidth: 50 },
+        1: { halign: 'center', cellWidth: 20 },
+        2: { halign: 'right', cellWidth: 35 },
+        3: { halign: 'right', fontStyle: 'bold', cellWidth: 40 },
       },
     });
 
@@ -124,7 +133,7 @@ export const pdfService = {
     doc.setFont("helvetica", "normal");
     doc.setTextColor(slate500[0], slate500[1], slate500[2]);
     doc.text("Subtotal", totalsX - totalsWidth, currentY + 15);
-    doc.text(`${CURR}${invoice.subtotal.toLocaleString()}`, totalsX, currentY + 15, { align: 'right' });
+    doc.text(`${invoice.business.currency || CURR}${invoice.subtotal.toLocaleString()}`, totalsX, currentY + 15, { align: 'right' });
 
     currentY += 15;
 
@@ -136,7 +145,7 @@ export const pdfService = {
     doc.setFont("helvetica", "bold");
     doc.setTextColor(slate900[0], slate900[1], slate900[2]);
     doc.text("Total", totalsX - totalsWidth, currentY + 18);
-    doc.text(`${CURR}${invoice.total.toLocaleString()}`, totalsX, currentY + 18, { align: 'right' });
+    doc.text(`${invoice.business.currency || CURR}${invoice.total.toLocaleString()}`, totalsX, currentY + 18, { align: 'right' });
 
     // 6. Payment Details Box
     const boxY = Math.max(currentY + 45, 190);

@@ -183,14 +183,14 @@ const Home = () => {
   const handleSmartParse = async () => {
     if (!parserInput.trim()) return;
 
-    // Block parsing if business profile is incomplete
+    // Block parsing if business profile is incomplete (address is optional)
     const biz = activeInvoice.business;
-    const requiredFields: (keyof BusinessProfile)[] = ['name', 'email', 'address', 'phone', 'bankName', 'accountNumber', 'accountName'];
+    const requiredFields: (keyof BusinessProfile)[] = ['name', 'email', 'phone', 'bankName', 'accountNumber', 'accountName'];
     const missingFields = requiredFields.filter(field => !biz[field] || biz[field]?.trim() === '');
     const hasDefaultAccount = biz.accountNumber === '0123456789' || biz.accountNumber === '8123456789';
 
     if (missingFields.length > 0 || hasDefaultAccount) {
-      alert("Please complete your Business Profile in Settings before using the smart parser. All business details are required for professional billing.");
+      alert("Please complete your Business Profile in Settings before using the smart parser. Essential business details are required for professional billing.");
       setShowSettings(true);
       return;
     }
@@ -253,13 +253,13 @@ const Home = () => {
 
   const handleSaveAndDownload = () => {
     const biz = activeInvoice.business;
-    const requiredFields: (keyof BusinessProfile)[] = ['name', 'email', 'address', 'phone', 'bankName', 'accountNumber', 'accountName'];
+    const requiredFields: (keyof BusinessProfile)[] = ['name', 'email', 'phone', 'bankName', 'accountNumber', 'accountName'];
     const missingFields = requiredFields.filter(field => !biz[field] || biz[field]?.trim() === '');
 
     const hasDefaultAccount = biz.accountNumber === '0123456789' || biz.accountNumber === '8123456789';
 
     if (missingFields.length > 0 || hasDefaultAccount) {
-      alert("Please complete your Business Profile in Settings before generating an invoice. All fields (Name, Email, Address, Phone, Bank, and Account Details) are required.");
+      alert("Please complete your Business Profile in Settings before generating an invoice. Essential fields (Name, Email, Phone, Bank, and Account Details) are required.");
       setShowSettings(true);
       return;
     }
@@ -501,7 +501,7 @@ const Home = () => {
                         placeholder="1"
                         value={item.quantity === 0 ? '' : item.quantity}
                         onChange={(e) => handleItemUpdate(item.id, 'quantity', e.target.value === '' ? 0 : parseFloat(e.target.value))}
-                        className="w-full bg-slate-50 dark:bg-slate-950 border-2 border-transparent focus:border-indigo-600 dark:focus:border-indigo-500 rounded-xl p-3 text-xs outline-none text-slate-900 dark:text-slate-100 transition-all font-bold text-center pl-1 pr-1"
+                        className="w-full bg-slate-50 dark:bg-slate-950 border-2 border-transparent focus:border-indigo-600 dark:focus:border-indigo-500 rounded-xl p-3 text-xs outline-none text-slate-900 dark:text-slate-100 font-bold transition-all text-center pl-1 pr-1"
                       />
                     </div>
                     <div className="col-span-2">
@@ -515,7 +515,7 @@ const Home = () => {
                     </div>
                     <div className="col-span-4">
                       <div className="relative">
-                        <span className="absolute left-3 top-3 text-slate-400 dark:text-slate-600 text-xs font-bold">{CURRENCY}</span>
+                        <span className="absolute left-3 top-3 text-slate-400 dark:text-slate-600 text-xs font-bold">{activeInvoice.business.currency}</span>
                         <input
                           type="number"
                           placeholder="0"
@@ -549,9 +549,9 @@ const Home = () => {
           <div className="flex flex-col sm:flex-row gap-6">
             <button
               onClick={handleSaveAndDownload}
-              className={`flex-1 bg-slate-900 dark:bg-indigo-600 text-white py-6 rounded-3xl font-black text-xl hover:bg-slate-800 dark:hover:bg-indigo-700 transition flex items-center justify-center gap-4 shadow-2xl shadow-indigo-200 dark:shadow-none uppercase tracking-widest ${(!activeInvoice.business.name || !activeInvoice.business.address || !activeInvoice.business.phone || !activeInvoice.business.accountNumber)
-                ? 'opacity-40 cursor-not-allowed'
-                : ''
+              className={`flex-1 bg-slate-900 dark:bg-indigo-600 text-white py-6 rounded-3xl font-black text-xl hover:bg-slate-800 dark:hover:bg-indigo-700 transition flex items-center justify-center gap-4 shadow-2xl shadow-indigo-200 dark:shadow-none uppercase tracking-widest ${(!activeInvoice.business.name || !activeInvoice.business.phone || !activeInvoice.business.accountNumber)
+                  ? 'opacity-40 cursor-not-allowed'
+                  : ''
                 }`}
             >
               <Download className="w-6 h-6" />
@@ -579,7 +579,7 @@ const Home = () => {
                       </p>
                     </div>
                     <div className="flex flex-col items-end gap-3 py-1">
-                      <p className="font-black text-slate-900 dark:text-slate-50 text-xl leading-none">{CURRENCY}{inv.total.toLocaleString()}</p>
+                      <p className="font-black text-slate-900 dark:text-slate-50 text-xl leading-none">{inv.business.currency || CURRENCY}{inv.total.toLocaleString()}</p>
                       <StatusBadge status={inv.status} />
                     </div>
                   </div>

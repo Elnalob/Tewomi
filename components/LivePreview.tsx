@@ -53,7 +53,7 @@ const LivePreview: React.FC<{ invoice: Invoice }> = ({ invoice }) => {
                 {item.unit && <span className="text-[8px] text-gray-400 ml-1">({item.unit})</span>}
               </td>
               <td className="py-3 text-center text-gray-500">{item.quantity}</td>
-              <td className="py-3 text-right font-bold text-gray-900">{CURRENCY}{item.total.toLocaleString()}</td>
+              <td className="py-3 text-right font-bold text-gray-900">{invoice.business.currency || CURRENCY}{item.total.toLocaleString()}</td>
             </tr>
           ))}
         </tbody>
@@ -62,11 +62,11 @@ const LivePreview: React.FC<{ invoice: Invoice }> = ({ invoice }) => {
       <div className="flex flex-col items-end space-y-1 ml-auto w-32">
         <div className="flex justify-between w-full text-gray-400">
           <span>Subtotal</span>
-          <span>{CURRENCY}{invoice.subtotal.toLocaleString()}</span>
+          <span>{invoice.business.currency || CURRENCY}{invoice.subtotal.toLocaleString()}</span>
         </div>
         <div className="flex justify-between w-full font-black text-gray-900 pt-2 border-t border-gray-900 text-sm">
           <span>Total</span>
-          <span>{CURRENCY}{invoice.total.toLocaleString()}</span>
+          <span>{invoice.business.currency || CURRENCY}{invoice.total.toLocaleString()}</span>
         </div>
       </div>
 
