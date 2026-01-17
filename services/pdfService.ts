@@ -92,12 +92,20 @@ export const pdfService = {
     doc.setLineWidth(1.5);
     doc.line(margin, lineY, pageWidth - margin, lineY);
 
+    const toTitleCase = (str: string) => {
+      return str.toLowerCase().split(' ').map(word => {
+        return (word.charAt(0).toUpperCase() + word.slice(1));
+      }).join(' ');
+    };
+
     // 4. Line Items Table with Headers - Perfectly Aligned
     autoTable(doc, {
       startY: lineY + 5,
       head: [['Description', 'Qty', 'Price', 'Total']],
       body: invoice.items.map(item => [
-        item.unit ? `${item.description} (${item.unit})` : (item.description || '...'),
+        item.unit
+          ? `${toTitleCase(item.description)} (${item.unit})`
+          : (toTitleCase(item.description || '...')),
         item.quantity,
         `${invoice.business.currency || CURR}${item.unitPrice.toLocaleString()}`,
         `${invoice.business.currency || CURR}${item.total.toLocaleString()}`
