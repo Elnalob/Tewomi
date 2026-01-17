@@ -92,7 +92,7 @@ export const pdfService = {
     doc.setLineWidth(1.5);
     doc.line(margin, lineY, pageWidth - margin, lineY);
 
-    // 4. Line Items Table with Headers
+    // 4. Line Items Table with Headers - Perfectly Aligned
     autoTable(doc, {
       startY: lineY + 5,
       head: [['Description', 'Qty', 'Price', 'Total']],
@@ -104,10 +104,10 @@ export const pdfService = {
       ]),
       theme: 'plain',
       headStyles: {
-        fontSize: 8,
+        fontSize: 9, // Slightly larger for clarity
         fontStyle: 'bold',
         textColor: slate500,
-        cellPadding: { bottom: 5, top: 2 }
+        cellPadding: { bottom: 8, top: 4 }
       },
       styles: {
         fontSize: 10,
@@ -117,9 +117,9 @@ export const pdfService = {
       },
       columnStyles: {
         0: { cellWidth: 'auto', fontStyle: 'bold' },
-        1: { halign: 'center', cellWidth: 20 },
-        2: { halign: 'right', cellWidth: 35 },
-        3: { halign: 'right', fontStyle: 'bold', cellWidth: 40 },
+        1: { halign: 'center', cellWidth: 25 },
+        2: { halign: 'right', cellWidth: 40 },
+        3: { halign: 'right', fontStyle: 'bold', cellWidth: 45 },
       },
     });
 
