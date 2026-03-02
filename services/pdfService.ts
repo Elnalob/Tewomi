@@ -164,15 +164,15 @@ export const pdfService = {
     doc.text(`${invoice.business.currency || CURR}${invoice.total.toLocaleString()}`, totalsX, currentY + 18, { align: 'right' });
 
     // 6. Payment Details Box
-    const pageHeight = doc.internal.pageSize.getHeight();
     const boxHeight = 48;
     const boxSpacing = 45;
-    let boxY = currentY + boxSpacing;
+    const boxY = currentY + boxSpacing;
 
-    // If the box would overflow the current page, add a new page
-    if (boxY + boxHeight + 10 > pageHeight) {
-      doc.addPage();
-      boxY = margin;
+    // Extend page height if the payment box would overflow, keeping everything on one page
+    const requiredHeight = boxY + boxHeight + 15;
+    const pageHeight = doc.internal.pageSize.getHeight();
+    if (requiredHeight > pageHeight) {
+      (doc.internal.pageSize as any).height = requiredHeight;
     }
 
     doc.setFillColor(slate50[0], slate50[1], slate50[2]);
