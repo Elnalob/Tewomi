@@ -164,8 +164,16 @@ export const pdfService = {
     doc.text(`${invoice.business.currency || CURR}${invoice.total.toLocaleString()}`, totalsX, currentY + 18, { align: 'right' });
 
     // 6. Payment Details Box
-    const boxY = Math.max(currentY + 45, 190);
+    const pageHeight = doc.internal.pageSize.getHeight();
     const boxHeight = 48;
+    const boxSpacing = 45;
+    let boxY = currentY + boxSpacing;
+
+    // If the box would overflow the current page, add a new page
+    if (boxY + boxHeight + 10 > pageHeight) {
+      doc.addPage();
+      boxY = margin;
+    }
 
     doc.setFillColor(slate50[0], slate50[1], slate50[2]);
     doc.setDrawColor(slate200[0], slate200[1], slate200[2]);
