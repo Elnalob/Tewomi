@@ -71,11 +71,14 @@ const LivePreview: React.FC<{ invoice: Invoice }> = ({ invoice }) => {
       </div>
 
       <div className="mt-auto pt-12">
-        <div className="p-4 bg-gray-50 rounded border border-dashed border-gray-200">
-          <p className="font-bold text-[8px] uppercase text-gray-400 mb-1">Payment Details</p>
-          <p className="text-gray-700">{invoice.business.bankName}</p>
-          <p className="text-gray-900 font-bold">{invoice.business.accountNumber}</p>
-          <p className="text-gray-500 text-[8px]">{invoice.business.accountName}</p>
+        <div className="p-4 bg-gray-50 rounded border border-dashed border-gray-200 flex justify-between items-center">
+          <div>
+            <p className="font-bold text-[8px] uppercase text-blue-400 mb-1">Payment Details</p>
+            <p className="text-gray-500">{invoice.business.bankName}</p>
+            <p className="text-gray-900 font-bold text-sm">{invoice.business.accountNumber}</p>
+            <p className="text-gray-400 text-[8px] uppercase">{invoice.business.accountName}</p>
+          </div>
+          <p className="text-gray-800 italic font-serif text-xl">Thank you!</p>
         </div>
       </div>
     </div>
