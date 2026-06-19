@@ -141,10 +141,15 @@ export const pdfService = {
 
     let currentY = (doc as any).lastAutoTable.finalY || 130;
     const pageHeight = doc.internal.pageSize.getHeight();
-    const footerMargin = 15; // Leave reasonable margin at the bottom
+    const footerMargin = 15;
 
-    // Check if the totals section fits on the page (needs around 35 units)
-    if (currentY + 35 + footerMargin > pageHeight) {
+    // 5. Totals & Payment Section Pagination
+    // Combined height needed: Totals (~33) + spacing (12) + boxHeight (40) + footer margin (15) = 100 units.
+    const boxHeight = 40;
+    const boxSpacing = 12;
+    const requiredHeight = 33 + boxSpacing + boxHeight + footerMargin;
+
+    if (currentY + requiredHeight > pageHeight) {
       doc.addPage();
       currentY = 20; // reset Y to top of new page
     }
@@ -172,17 +177,7 @@ export const pdfService = {
     doc.text(`${invoice.business.currency || CURR}${invoice.total.toLocaleString()}`, totalsX, currentY + 18, { align: 'right' });
 
     // 6. Payment Details Box
-    const boxHeight = 48;
-    const boxSpacing = 15; // Compact spacing below totals to avoid unnecessary page break
-
-    // Total is drawn at currentY + 18, so the bottom of Totals section is currentY + 18
     let boxY = currentY + 18 + boxSpacing;
-
-    // Check if the payment details box fits on the current page
-    if (boxY + boxHeight + footerMargin > pageHeight) {
-      doc.addPage();
-      boxY = 20; // Place the payment box near the top of the new page
-    }
 
     doc.setFillColor(slate50[0], slate50[1], slate50[2]);
     doc.setDrawColor(slate200[0], slate200[1], slate200[2]);
@@ -193,27 +188,27 @@ export const pdfService = {
     doc.setFontSize(8);
     doc.setFont("helvetica", "bold");
     doc.setTextColor(slate500[0], slate500[1], slate500[2]);
-    doc.text("PAYMENT DETAILS", margin + 10, boxY + 12);
+    doc.text("PAYMENT DETAILS", margin + 10, boxY + 10);
 
     doc.setFontSize(11);
     doc.setFont("helvetica", "normal");
     doc.setTextColor(slate500[0], slate500[1], slate500[2]);
-    doc.text(invoice.business.bankName || 'Bank Name', margin + 10, boxY + 22);
+    doc.text(invoice.business.bankName || 'Bank Name', margin + 10, boxY + 18);
 
     doc.setFontSize(18);
     doc.setFont("helvetica", "bold");
     doc.setTextColor(slate900[0], slate900[1], slate900[2]);
-    doc.text(invoice.business.accountNumber || '', margin + 10, boxY + 35);
+    doc.text(invoice.business.accountNumber || '', margin + 10, boxY + 28);
 
     doc.setFontSize(9);
     doc.setFont("helvetica", "normal");
     doc.setTextColor(slate500[0], slate500[1], slate500[2]);
-    doc.text(invoice.business.accountName?.toUpperCase() || '', margin + 10, boxY + 43);
+    doc.text(invoice.business.accountName?.toUpperCase() || '', margin + 10, boxY + 35);
 
     doc.setFont("times", "italic");
     doc.setFontSize(36);
     doc.setTextColor(slate900[0], slate900[1], slate900[2]);
-    doc.text("Thank you!", pageWidth - margin - 10, boxY + 30, { align: 'right' });
+    doc.text("Thank you!", pageWidth - margin - 10, boxY + 27, { align: 'right' });
 
     doc.save(`Invoice_${invoice.invoiceNumber}.pdf`);
   }
