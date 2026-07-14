@@ -1,7 +1,73 @@
 
 import { GoogleGenerativeAI, SchemaType } from "@google/generative-ai";
-import { LineItem } from "../types";
+import { LineItem, SplitPayment } from "../types";
 import { storageService } from "./storageService";
+import { VAT_RATE } from "../constants";
+
+/**
+ * Parses Nigerian k-shorthand (50k → 50000) and comma-formatted numbers.
+ * Returns the numeric value, or NaN if it cannot be resolved.
+ */
+const parseNairaAmount = (raw: string): number => {
+  // Remove commas, trim spaces
+  const cleaned = raw.replace(/,/g, '').trim();
+  // Handle "50k" → 50000
+  if (/^\d+(\.\d+)?k$/i.test(cleaned)) {
+    return parseFloat(cleaned) * 1000;
+  }
+  return parseFloat(cleaned);
+};
+
+/**
+ * Client-side post-processor that scans the original sentence for:
+ * 1. VAT keywords  → vatEnabled: true
+ * 2. Split payment → splitPayment: { depositAmount, depositPercent, balance }
+ *
+ * This runs AFTER the Gemini AI parse, so it never affects the AI schema.
+ */
+const postProcessText = (
+  text: string,
+  subtotal: number
+): { vatEnabled: boolean; splitPayment?: Omit<SplitPayment, 'balance'> } => {
+  const lower = text.toLowerCase();
+
+  // --- VAT Detection ---
+  // Matches: +vat, with vat, including vat, add vat, including tax, plus tax
+  const vatEnabled = /(\+vat|with\s+vat|including\s+(vat|tax)|add\s+vat|plus\s+tax)/.test(lower);
+
+  // --- Split Payment Detection ---
+  let splitPayment: Omit<SplitPayment, 'balance'> | undefined;
+
+  // Pattern 1: "deposit 50,000" or "deposit 50k"
+  const absoluteMatch = lower.match(/deposit\s+([\d,]+k?)/i);
+  if (absoluteMatch) {
+    const depositAmount = parseNairaAmount(absoluteMatch[1]);
+    if (!isNaN(depositAmount) && depositAmount > 0) {
+      splitPayment = { depositAmount };
+    }
+  }
+
+  // Pattern 2: "50% upfront" or "deposit 30%" or "30% down payment"
+  if (!splitPayment) {
+    const percentMatch = lower.match(/(\d+)%\s*(upfront|deposit|down\s*payment|advance)/i)
+      || lower.match(/(deposit|pay)\s+(\d+)%/i);
+    if (percentMatch) {
+      // Grab the numeric capture group that contains the percentage
+      const pctStr = percentMatch[1] && /^\d+$/.test(percentMatch[1])
+        ? percentMatch[1]
+        : percentMatch[2];
+      const pct = parseFloat(pctStr);
+      if (!isNaN(pct) && pct > 0 && pct < 100) {
+        splitPayment = {
+          depositAmount: Math.round(subtotal * (pct / 100)),
+          depositPercent: pct
+        };
+      }
+    }
+  }
+
+  return { vatEnabled, splitPayment };
+};
 
 
 export const geminiService = {
@@ -12,7 +78,9 @@ export const geminiService = {
     clientPhone?: string,
     clientAddress?: string,
     dueDate?: string,
-    totalAmount?: number
+    totalAmount?: number,
+    vatEnabled?: boolean,
+    splitPayment?: Omit<SplitPayment, 'balance'>
   }> => {
     // Try user-defined key first
     const user = storageService.getUser();
@@ -28,7 +96,6 @@ export const geminiService = {
       return { items: [], _error: "Missing API Key. Please add one in Settings." } as any;
     }
     console.log("Gemini API Key found, starting parse...");
-
 
     const genAI = new GoogleGenerativeAI(apiKey);
     const model = genAI.getGenerativeModel({
@@ -78,7 +145,8 @@ export const geminiService = {
         Today's date is ${new Date().toISOString().split('T')[0]}. Use this to resolve relative dates like "next Monday".
         If currency is $ or USD, use that in unitPrice. If Naira or k (as in 50k), use thousands.
         Default quantity to 1 if not specified.
-        If a unit is mentioned (like "2 bags", "5 hours"), extract "bags" or "hours" as the unit.`
+        If a unit is mentioned (like "2 bags", "5 hours"), extract "bags" or "hours" as the unit.
+        Do NOT extract VAT, deposit, or split-payment data — that is handled separately.`
     });
 
     try {
@@ -88,10 +156,22 @@ export const geminiService = {
 
       // Clean the response in case it's wrapped in markdown code blocks
       const cleanJson = responseText.replace(/```json/g, '').replace(/```/g, '').trim();
-      return JSON.parse(cleanJson);
+      const aiResult = JSON.parse(cleanJson);
+
+      // Calculate subtotal from AI items for split-payment percentage calculation
+      const subtotal = (aiResult.items || []).reduce(
+        (sum: number, item: Partial<LineItem>) => sum + ((item.quantity || 1) * (item.unitPrice || 0)),
+        0
+      );
+
+      // Apply client-side post-processing for VAT + split payment
+      const { vatEnabled, splitPayment } = postProcessText(text, subtotal);
+
+      return { ...aiResult, vatEnabled, splitPayment };
     } catch (e: any) {
       console.error("Failed to parse Tewómi request. Error details:", e);
       return { items: [], _error: e.message || "Unknown error" } as any;
     }
   }
 };
+
