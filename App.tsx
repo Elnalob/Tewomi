@@ -174,11 +174,6 @@ const shareViaWhatsApp = (invoice: Invoice) => {
   lines.push(`Bank: ${invoice.business.bankName || 'N/A'}`);
   lines.push(`Account: ${invoice.business.accountNumber || 'N/A'}`);
   lines.push(`Name: ${invoice.business.accountName || 'N/A'}`);
-
-  // Share link (same-device only, offline-first)
-  const shareLink = `${window.location.origin}/#/public/${invoice.id}`;
-  lines.push('');
-  lines.push(`View invoice: ${shareLink}`);
   lines.push('');
   lines.push('Thank you for your business! 🙏');
   lines.push('');
